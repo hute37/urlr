@@ -15,3 +15,8 @@ vignettes/*.pdf
 .httr-oauth
 inst/doc
 .Rproj.user
+
+# roxygen2 generated
+man/*.Rd
+NAMESPACE
+
