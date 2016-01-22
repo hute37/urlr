@@ -3,8 +3,15 @@ Type: Package
 Title: What the Package Does (Title Case)
 Version: 0.1
 Date: 2016-01-22
-Author: Giovanni Pelosi
-Maintainer: Giovanni Pelosi <hute37@gmail.com>
-Description: More about what it does (maybe more than one line)
+Authors@R: person("Giovanni", "Pelosi", role=c("aut", "cre"), email = "hute37@gmail.com")
+Description: URL custom protocol handler support.
 License: GPL-3
 LazyData: TRUE
+Suggests: 
+    testthat,
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
+RoxygenNote: 5.0.1
+Imports: urltools,
+    magrittr
