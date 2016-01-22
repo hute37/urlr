@@ -1,0 +1,10 @@
+Package: urlr
+Type: Package
+Title: What the Package Does (Title Case)
+Version: 0.1
+Date: 2016-01-22
+Author: Giovanni Pelosi
+Maintainer: Giovanni Pelosi <hute37@gmail.com>
+Description: More about what it does (maybe more than one line)
+License: GPL-3
+LazyData: TRUE
