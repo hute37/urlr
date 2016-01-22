@@ -1,13 +1,17 @@
 Package: urlr
 Type: Package
-Title: What the Package Does (Title Case)
+Title: URL Custom Protocol (scheme) Handler Support
 Version: 0.1
 Date: 2016-01-22
 Authors@R: person("Giovanni", "Pelosi", role=c("aut", "cre"), email = "hute37@gmail.com")
 Description: URL custom protocol handler support.
+    It defines a S3 framework for registering "custom"
+    URI protocol handlers (like: sftp://, ssh://).
+    Some custom handlers are provided. 
+URL: https://github.com/hute37/urlr
 License: GPL-3
 LazyData: TRUE
-Suggests: 
+Suggests:
     testthat,
     knitr,
     rmarkdown
