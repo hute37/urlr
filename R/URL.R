@@ -24,19 +24,14 @@ URL <- function(url, src, meta=c(), ...) {
 
     }
 
-    clazz <- paste("URL",comp$scheme,sep="_")
-    clazzes <- list(clazz,"URL")
-    force(clazzes)
-
     x <- structure(list(
       url = url,
       comp = comp,
       src = src,
       env = env,
       origin = origin
-    ),class("URL"))
+    ),class = c(paste("URL",comp$scheme,sep="_"), "URL"))
 
-    class(x) <- clazzes
 
     x <- URL_init(x, meta=meta, ...) # warning StacKOverflow
     x <- URL_meta(x, meta=meta)
