@@ -11,8 +11,8 @@ vignette: >
 ```{r, echo=FALSE}
 library(knitr)
 #opts_knit$set(upload.fun = imgur_upload, base.url = NULL) # upload all images to imgur.com
-#opts_knit$set(upload.fun = function(file) imgur_upload(file, key = options()$ingur.client.id))
-#opts_chunk$set(fig.width=5, fig.height=5, cache=TRUE)
+opts_knit$set(upload.fun = function(file) imgur_upload(file, key = options()$ingur.client.id))
+opts_chunk$set(fig.width=5, fig.height=5, cache=TRUE)
 ```
 
 Vignettes are long form documentation commonly included in packages. Because they are part of the distribution of the package, they need to be as compact as possible. The `html_vignette` output type provides a custom style sheet (and tweaks some options) to ensure that the resulting html is as small as possible. The `html_vignette` format:

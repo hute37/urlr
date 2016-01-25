@@ -1,21 +1,44 @@
 #' Create a URL S3 object
 #'
 #' @param url string url rapresentation
+#' @param src an URL object fron which this object is derived
 #' @param meta an optional array of meta attributes
 #' @param ... other arguments passed to specific methods
 #' @return an URL object
 #' @export
 #'
-URL <- function(url, meta=c(), ...) {
+URL <- function(url, src, meta=c(), ...) {
     if (missing(url)) return(NULL)
     if (is.null(url)) return(NULL)
     if (is.na(url)) return(NA_character_) # TODO(gp): NA_URL
 
-    u <- urltools::url_parse(url)
-    u$url <- url
-    structure(u,
-              class(c(paste("URI",u$scheme,sep="_"), "URI")))
-    x <- URL_init(x, meta=c(), ...) # warning StacKOverflow
+    comp <- urltools::url_parse(url)
+
+    if (missing(src)) {
+      origin <- TRUE
+      src <- NULL
+      env <- new.env()
+    } else {
+      origin <- FALSE
+      env <- new.env(parent = src$env)
+
+    }
+
+    clazz <- paste("URL",comp$scheme,sep="_")
+    clazzes <- list(clazz,"URL")
+    force(clazzes)
+
+    x <- structure(list(
+      url = url,
+      comp = comp,
+      src = src,
+      env = env,
+      origin = origin
+    ),class("URL"))
+
+    class(x) <- clazzes
+
+    x <- URL_init(x, meta=meta, ...) # warning StacKOverflow
     x <- URL_meta(x, meta=meta)
 }
 
@@ -28,40 +51,22 @@ as.character.URL <- function(x, ...) x$url
 #'
 #' @rdname as.URL
 #' @param x somthing to be cast to an URL
-#' @param meta an optional array of meta attributes
 #' @param ... other arguments passed to specific methods
 #' @return an URL object
 #' @export
 #'
-as.URL <- function(x, meta=c(), ...) UseMethod("as.URL")
+as.URL <- function(x, ...) UseMethod("as.URL")
 
 #' @rdname as.URL
 #' @export
 #' @method as.URL default
 #'
-as.URL.default <- base::Vectorize(FUN=function(x, meta=c(), ...) {
+as.URL.default <- base::Vectorize(FUN=function(x, ...) {
   url <- as.character(x)
-  x <- URL(url, meta, ...)
+  x <- URL(url, ...)
 })
 
 
-
-#' "Virtual" object initialization
-#'
-#' @rdname URL_init
-#' @param x an uninitialized URL object
-#' @param meta an optional array of meta attributes
-#' @param ... other arguments passed to specific methods
-#' @return an initialized URL obect
-#' @export
-#'
-URL_init <- function(x, meta=c(), ...) UseMethod("URL_init")
-
-#' @rdname URL_init
-#' @export
-#' @method URL_init default
-#'
-URL_init.default <- function(x, meta=c(), ...) x
 
 
 
@@ -107,22 +112,40 @@ URL_stop_unsupported.default <- function(x, caller, ...) {
 }
 
 
+#' "Virtual" object initialization
+#'
+#' @rdname URL_init
+#' @param x an uninitialized URL object
+#' @param meta an optional array of meta attributes
+#' @param ... other arguments passed to specific methods
+#' @return an initialized URL obect
+#' @export
+#'
+URL_init <- function(x, meta=c(), ...) UseMethod("URL_init")
+
+#' @rdname URL_init
+#' @export
+#' @method URL_init default
+#'
+URL_init.default <- function(x, meta=c(), ...) x
+
 #' set meta named array argument
 #' as URL object attributes (with prefix 'meta.')
 #'
 #' @rdname URL_meta
 #' @param x an uninitialized URL object
+#' @param meta an optional array of meta attributes
 #' @param ... other arguments passed to specific methods
 #' @return a 'meta' decorated URL obect
 #' @export
 #'
-URL_meta <- function(x, ...) UseMethod("URL_meta")
+URL_meta <- function(x, meta=c(), ...) UseMethod("URL_meta")
 
 #' @rdname URL_meta
 #' @export
 #' @method URL_meta default
 #'
-URL_meta.default <- function(x, ...) x
+URL_meta.default <- function(x, meta=c(), ...) x
 
 
 
@@ -154,54 +177,53 @@ as.conn.url.default <- function(x, open = "", blocking = TRUE,
 }
 
 
-#' stores fetched url data to default work folder,
-#' returning a 'file://' url of local file
-#'
-#' @rdname URL_GET
-#' @param x a URL object
-#' @param meta an array of named attributes to set to the URL for the call
-#' @param ... other arguments passed to specific methods
-#' @return a file:// URL to fetched raw data
-#' @export
-#'
-URL_GET <- function(x, meta=c(), ...) UseMethod("URL_GET")
-
-#' @rdname URL_GET
-#' @export
-#' @method URL_GET default
-#'
-URL_GET.default <- function(x, meta=c(), ...) x
 
 
-
-#' "Virtual" object initialization
+#' Fetch url to local storage
 #'
-#' @rdname URL_read
+#' @rdname URL_fetch
 #' @param x an uninitialized URL object
 #' @param ... other arguments passed to specific methods
-#' @return an initialized URL obect
+#' @return a local file:// URL obect or na:// URL in case of failure
 #' @export
 #'
-URL_read <- function(x, ...) UseMethod("URL_read")
+URL_fetch <- function(x, ...) UseMethod("URL_fetch")
 
-#' @rdname URL_read
+#' @rdname URL_fetch
 #' @export
-#' @method URL_read default
+#' @method URL_fetch default
 #'
-URL_read.default <- function(x, ...) x
+URL_fetch.default <- function(x, ...) x
 
-#' follow 'R data()' euristics to build a data rapresentation of an URL
+#' follows 'R data()' and httr euristics to build a data rapresentation of an URL
 #' the object returned is data.frame or environment
 #'
-#' the file-extension ".rda,.txt,.tab,.csv" in path part of URL
-#' is used to identify read.* function.
-#'
 #' Additional parameters are passed to read.* function
+#'
+#' @rdname URL_parse
+#' @param x a URL object
+#' @param ... other arguments passed to specific methods
+#' @return an list of URL with relerence to internal environment for data object
+#' @export
+#'
+URL_parse <- function(x, ...) UseMethod("URL_parse")
+
+#' @rdname URL_parse
+#' @export
+#' @method URL_parse default
+#'
+URL_parse.default <- function(x, ...) URL_stop_unsupported(x,'URL_parse')
+
+
+
+#' extract a persed data object, stored after 'parse'
+#' in object environment
+#'
 #'
 #' @rdname URL_data
 #' @param x a URL object
 #' @param ... other arguments passed to specific methods
-#' @return an "parsed" data object
+#' @return an parsed data object
 #' @export
 #'
 URL_data <- function(x, ...) UseMethod("URL_data")
