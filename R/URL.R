@@ -19,6 +19,7 @@ URL <- function(url, base = paste0("file://",getwd()), src = NULL, meta = c(), .
       URL(u, base, src, meta, ...)))
   }
 
+  init <- NULL
   if (!is.null(src)) {
     if (!is.URL(src)) {
       stopifnot(is.character(src))
@@ -51,17 +52,23 @@ URL <- function(url, base = paste0("file://",getwd()), src = NULL, meta = c(), .
 
   if (is.null(src)) {
     origin <- TRUE
+    init <- NULL
     src <- NULL
     env <- new.env()
   } else {
     origin <- FALSE
     env <- new.env(parent = src$env)
+    init <- src
+    while (!is.null(init$src)) {
+      init <- init$src
+    }
   }
 
   x <- structure(list(
     url = url,
     comp = comp,
     src = src,
+    init = init,
     base = base,
     rel = rel,
     env = env,
@@ -73,6 +80,8 @@ URL <- function(url, base = paste0("file://",getwd()), src = NULL, meta = c(), .
   x <- URL_init(x, meta = meta, ...) # warning StacKOverflow
   x <- URL_meta(x, meta = meta)
 }
+
+
 
 #' check if URL object
 #'
@@ -94,6 +103,56 @@ as.character.URL <- function(x, ...) {
     return(lapply(x, as.character.URL))
   stopifnot(is.URL(x))
 }
+
+#' conver string form of object to URL object
+#'
+#' @rdname as.URL_row
+#' @param x an URL object
+#' @param ... other arguments passed to specific methods
+#' @return an named list of data.frame columns
+#' @export
+#'
+as.URL_row <- function(x, ...)
+  UseMethod("as.URL_row")
+
+
+#' @rdname as.URL_row
+#' @export
+#' @method as.URL_row default
+#'
+as.URL_row.default <- function(x, ...) {
+  stopifnot(is.URL(x))
+  as.NA.NULL <- function (o) ifelse(is.null(o), NA, o)
+  unlist(list(
+    url = x$url,
+    base = as.NA.NULL(as.character(x$base)),
+    src = as.NA.NULL(as.character(x$src)),
+    init = as.NA.NULL(as.character(x$init)),
+    relative = x$relative,
+    origin = x$origin
+  ))
+}
+
+
+
+#' @export
+#' @method as.data.frame URL
+as.data.frame.URL <- function(x, ...) {
+  if (missing(x) || is.null(x))
+    return(NULL)
+  if (!is.URL(x) && is.list(x)) {
+    #@see http://www.r-bloggers.com/concatenating-a-list-of-data-frames/
+    xs <- lapply(x, as.data.frame.URL)
+#    xn <- names(xs)
+#    names(xs) <- NULL
+    df <- do.call('rbind',xs)
+    return(df)
+  }
+  stopifnot(is.URL(x))
+  data.frame(t(as.matrix(as.URL_row(x))))
+}
+
+
 
 #' conver string form of object to URL object
 #'
