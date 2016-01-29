@@ -4,6 +4,15 @@ language: r
 warnings_are_errors: true
 sudo: required
 
+
+cache: apt
+
+notifications:
+  email:
+    on_success: change
+    on_failure: change
+
+
 r_packages:
   - covr
 after_success:

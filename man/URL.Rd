@@ -2,10 +2,32 @@
 % Please edit documentation in R/URL.R
 \name{URL}
 \alias{URL}
+\alias{as.URL}
+\alias{as.URL.default}
+\alias{as.URL_row}
+\alias{as.URL_row.default}
+\alias{as.character.URL}
+\alias{as.data.frame.URL}
+\alias{is.URL}
 \title{Create a URL S3 object}
 \usage{
 URL(url, base = paste0("file://", getwd()), src = NULL, id = NULL,
   meta = c(), ...)
+
+is.URL(x)
+
+as.URL(x, ...)
+
+\method{as.URL}{default}(x, ...)
+
+\method{as.character}{URL}(x, ...)
+
+as.URL_row(x, ...)
+
+\method{as.URL_row}{default}(x, ...)
+
+\method{as.data.frame}{URL}(x, row.names = NULL, optional = FALSE,
+  RECURSIVE = FALSE, ...)
 }
 \arguments{
 \item{url}{string url rapresentation}
@@ -19,12 +41,34 @@ URL(url, base = paste0("file://", getwd()), src = NULL, id = NULL,
 \item{meta}{an optional array of meta attributes}
 
 \item{...}{other arguments passed to specific methods}
+
+\item{x}{an arbitrary object or an object of S3 class URL}
+
+\item{row.names}{same as as.data.frame}
+
+\item{optional}{same as as.data.frame}
+
+\item{RECURSIVE}{deep expand src URLs}
 }
 \value{
 an URL object
+
+check condition
+
+an URL object
+
+an named list of data.frame columns
 }
 \description{
 Create a URL S3 object
+
+check if URL object
+
+conver as.character() string from of object to URL object
+
+conver string form of object to URL object
+
+coerce an URL vector to a data.frame
 }
 \examples{
 # simple scalar construction
@@ -34,7 +78,6 @@ as.character(u)
 
 # "derived" URL
 u2 <- URL('http://ietf.org', ,src='http://www.w3c.org')
-str(u2)
 as.character(u2)
 as.character(u2$src)
 
@@ -46,7 +89,7 @@ s3 <- URL('.Rhistory')
 s4 <- URL('~/.Rprofile')
 s5 <- URL('.Rprofile', base='~')
 
-as.character(c(s1,s2,s3,s4,s5))
+sapply(list(s1,s2,s3,s4,s5), as.character)
 
 # construction from a (named) character vector and data.frame cast
 l <- c(

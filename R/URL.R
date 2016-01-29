@@ -1,5 +1,6 @@
 #' Create a URL S3 object
 #'
+#' @rdname URL
 #' @param url string url rapresentation
 #' @param base a base url for relative urls (string or URL)
 #' @param src an URL object fron which this object is derived
@@ -16,7 +17,6 @@
 #'
 #' # "derived" URL
 #' u2 <- URL('http://ietf.org', ,src='http://www.w3c.org')
-#' str(u2)
 #' as.character(u2)
 #' as.character(u2$src)
 #'
@@ -28,7 +28,7 @@
 #' s4 <- URL('~/.Rprofile')
 #' s5 <- URL('.Rprofile', base='~')
 #'
-#' as.character(c(s1,s2,s3,s4,s5))
+#' sapply(list(s1,s2,s3,s4,s5), as.character)
 #'
 #' # construction from a (named) character vector and data.frame cast
 #' l <- c(
@@ -138,15 +138,38 @@ URL <- function(url, base = paste0("file://",getwd()), src = NULL, id = NULL, me
 
 #' check if URL object
 #'
-#' @param x an object to check
+#' @rdname URL
+#' @param x an arbitrary object or an object of S3 class URL
 #' @return check condition
 #' @export
 is.URL <- function(x)
   inherits(x, "URL")
 
 
+
+#' conver as.character() string from of object to URL object
+#'
+#' @rdname URL
+#' @return an URL object
 #' @export
+#'
+as.URL <- function(x, ...)
+  UseMethod("as.URL")
+
+#' @rdname URL
+#' @export
+#'
+as.URL.default <- base::Vectorize(
+  FUN = function(x, ...) {
+    url <- as.character(x)
+    x <- URL(url, ...)
+  }
+)
+
+
+#' @rdname URL
 #' @method as.character URL
+#' @export
 as.character.URL <- function(x, ...) {
   if (missing(x) || is.null(x))
     return(NULL)
@@ -159,9 +182,7 @@ as.character.URL <- function(x, ...) {
 
 #' conver string form of object to URL object
 #'
-#' @rdname as.URL_row
-#' @param x an URL object
-#' @param ... other arguments passed to specific methods
+#' @rdname URL
 #' @return an named list of data.frame columns
 #' @export
 #'
@@ -169,9 +190,9 @@ as.URL_row <- function(x, ...)
   UseMethod("as.URL_row")
 
 
-#' @rdname as.URL_row
-#' @export
+#' @rdname URL
 #' @method as.URL_row default
+#' @export
 #'
 as.URL_row.default <- function(x, ...) {
   stopifnot(is.URL(x))
@@ -196,44 +217,30 @@ as.URL_row.default <- function(x, ...) {
 
 
 
-#' @export
+#' coerce an URL vector to a data.frame
+#'
+#' @rdname URL
+#' @param row.names same as as.data.frame
+#' @param optional same as as.data.frame
+#' @param RECURSIVE deep expand src URLs
 #' @method as.data.frame URL
-as.data.frame.URL <- function(x, ...) {
+#' @export
+as.data.frame.URL <- function(x, row.names = NULL, optional = FALSE, RECURSIVE=FALSE, ...) {
   if (missing(x) || is.null(x))
-    return(NULL)
+    return(as.data.frame(list()))
   if (!is.URL(x) && is.list(x)) {
     #@see http://www.r-bloggers.com/concatenating-a-list-of-data-frames/
     xs <- lapply(x, as.data.frame.URL)
     df <- do.call('rbind',xs)
+    df <- as.data.frame(df, row.names = row.names, optional = optional, ...)
     return(df)
   }
   stopifnot(is.URL(x))
-  data.frame(t(as.matrix(as.URL_row(x))))
+  df <- data.frame(t(as.matrix(as.URL_row(x, ...))))
+  as.data.frame(df, row.names = row.names, optional = optional, ...)
 }
 
 
-
-#' conver string form of object to URL object
-#'
-#' @rdname as.URL
-#' @param x somthing to be cast to an URL
-#' @param ... other arguments passed to specific methods
-#' @return an URL object
-#' @export
-#'
-as.URL <- function(x, ...)
-  UseMethod("as.URL")
-
-#' @rdname as.URL
-#' @export
-#' @method as.URL default
-#'
-as.URL.default <- base::Vectorize(
-  FUN = function(x, ...) {
-    url <- as.character(x)
-    x <- URL(url, ...)
-  }
-)
 
 
 
@@ -253,8 +260,8 @@ URL_stop <- function(x, caller, text, ...)
   UseMethod("URL_stop")
 
 #' @rdname URL_stop
-#' @export
 #' @method URL_stop default
+#' @export
 #'
 URL_stop.default <- function(x, caller, text, ...) {
   m <- paste(c("method:",caller,text,"URL:",x$url))
