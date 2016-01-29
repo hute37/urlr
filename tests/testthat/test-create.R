@@ -27,6 +27,18 @@ test_that("relative, base $(pwd)", {
 
 })
 
+test_that("relative, base $(HOME)", {
+
+  x <- URL("~/.Rprofile")
+  y <- URL(".Rprofile", base="~")
+
+  expect_equal(x$url, paste0("file://",path.expand('~'),"/",".Rprofile"))
+  expect_false(x$relative)
+  expect_equal(as.character(y$url), as.character(x$url))
+  expect_true(y$relative)
+
+})
+
 
 test_that("absolute, no schema", {
 
@@ -105,6 +117,81 @@ test_that("absolute scalar with 3 source levels", {
   expect_false(w$origin)
   expect_false(w$src$origin)
   expect_true(w$src$src$origin)
+
+})
+
+test_that("list constructon", {
+
+  l <- list(
+    w3c='http://www.w3c.org',
+    ietf='http://ietf.org',
+    iana='http://www.iana.org',
+    hosts='hosts',
+    'R env'='file://etc/R/Renviron'
+  )
+
+  uz <- URL(l, src=URL('https://cran.r-project.org/'), base='/etc')
+
+  expect_equal(length(l), length(uz))
+  expect_identical(names(l), names(uz))
+
+})
+
+
+test_that("vector constructon", {
+
+  l <- c(
+    w3c='http://www.w3c.org',
+    ietf='http://ietf.org',
+    iana='http://www.iana.org',
+    hosts='hosts',
+    'R env'='file://etc/R/Renviron'
+  )
+
+  uz <- URL(l, src=URL('https://cran.r-project.org/'), base='/etc')
+
+  expect_equal(length(l), length(uz))
+  expect_identical(names(l), names(uz))
+
+})
+
+
+test_that("list constructon as.data.frame", {
+
+  l <- list(
+    w3c='http://www.w3c.org',
+    ietf='http://ietf.org',
+    iana='http://www.iana.org',
+    hosts='hosts',
+    'R env'='file://etc/R/Renviron'
+  )
+
+  uz <- URL(l, src=URL('https://cran.r-project.org/'), base='/etc')
+
+  df <- as.data.frame.URL(uz)
+
+  expect_equal(length(l), nrow(df))
+  expect_identical(names(l), rownames(df))
+
+})
+
+
+test_that("vector constructon as.data.frame", {
+
+  l <- c(
+    w3c='http://www.w3c.org',
+    ietf='http://ietf.org',
+    iana='http://www.iana.org',
+    hosts='hosts',
+    'R env'='file://etc/R/Renviron'
+  )
+
+  uz <- URL(l, src=URL('https://cran.r-project.org/'), base='/etc')
+
+  df <- as.data.frame.URL(uz)
+
+  expect_equal(length(l), nrow(df))
+  expect_identical(names(l), rownames(df))
 
 })
 

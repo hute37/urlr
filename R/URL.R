@@ -3,20 +3,62 @@
 #' @param url string url rapresentation
 #' @param base a base url for relative urls (string or URL)
 #' @param src an URL object fron which this object is derived
+#' @param id entry id (taken from named list/array)
 #' @param meta an optional array of meta attributes
 #' @param ... other arguments passed to specific methods
 #' @return an URL object
 #' @export
+#' @examples
+#' # simple scalar construction
+#' u <- URL('http://www.w3c.org')
+#' str(u)
+#' as.character(u)
 #'
-URL <- function(url, base = paste0("file://",getwd()), src = NULL, meta = c(), ...) {
+#' # "derived" URL
+#' u2 <- URL('http://ietf.org', ,src='http://www.w3c.org')
+#' str(u2)
+#' as.character(u2)
+#' as.character(u2$src)
+#'
+#' # default schema ('file://') with defaults
+#'
+#' s1 <- URL('/etc/R/Renvironment')
+#' s2 <- URL('hosts',base='/etc')
+#' s3 <- URL('.Rhistory')
+#' s4 <- URL('~/.Rprofile')
+#' s5 <- URL('.Rprofile', base='~')
+#'
+#' as.character(c(s1,s2,s3,s4,s5))
+#'
+#' # construction from a (named) character vector and data.frame cast
+#' l <- c(
+#'     w3c='http://www.w3c.org',
+#'     ietf='http://ietf.org',
+#'     iana='http://www.iana.org',
+#'     hosts='hosts',
+#'     'R env'='/etc/R/Renviron'
+#'  )
+#'
+#'  uz <- URL(l, src=URL('https://cran.r-project.org/'), base='/etc')
+#'
+#'  df <- as.data.frame.URL(uz)
+#'
+#'  head(df,nrow(df))
+#'
+URL <- function(url, base = paste0("file://",getwd()), src = NULL, id = NULL, meta = c(), ...) {
   if (missing(url) || is.null(url))
     return(NULL)
   if (is.URL(url)) {
     return(URL(url$url,src=ifelse(is.null(src), url,src)))
   }
   if (is.list(url)) {
-    return(lapply(url, function(u)
-      URL(u, base, src, meta, ...)))
+    return(mapply(function(u,n)
+      URL(url=u, base=base, src=src, id=n, meta=meta, ...), u=url, n=names(url), SIMPLIFY = FALSE))
+  }
+  stopifnot(is.character(url))
+  if (length(url) > 1) {
+    return(mapply(function(u,n)
+      URL(url=u, base=base, src=src, id=n, meta=meta, ...), u=url, n=names(url), SIMPLIFY = FALSE))
   }
 
   init <- NULL
@@ -29,7 +71,7 @@ URL <- function(url, base = paste0("file://",getwd()), src = NULL, meta = c(), .
   url <- as.character(url)
   rel <- NULL
   schemeless <- !grepl('^[a-z]+:',url)
-  relative <- schemeless && (substr(url,1,1) != "/")
+  relative <- schemeless && !grepl('^[/~]',url)
   if (schemeless) {
     if (relative) {
       if (!is.URL(base)) {
@@ -40,7 +82,7 @@ URL <- function(url, base = paste0("file://",getwd()), src = NULL, meta = c(), .
 
     } else {
       base <- NULL
-      url <- paste0("file://", url)
+      url <- paste0("file://", path.expand(url))
     }
 
   } else {
@@ -52,11 +94,13 @@ URL <- function(url, base = paste0("file://",getwd()), src = NULL, meta = c(), .
 
   if (is.null(src)) {
     origin <- TRUE
+    level <- 1
     init <- NULL
     src <- NULL
     env <- new.env()
   } else {
     origin <- FALSE
+    level <- src$level + 1
     env <- new.env(parent = src$env)
     init <- src
     while (!is.null(init$src)) {
@@ -64,7 +108,12 @@ URL <- function(url, base = paste0("file://",getwd()), src = NULL, meta = c(), .
     }
   }
 
+  if (is.null(id)) {
+    id <- NA_character_
+  }
+
   x <- structure(list(
+    id = id,
     url = url,
     comp = comp,
     src = src,
@@ -73,9 +122,13 @@ URL <- function(url, base = paste0("file://",getwd()), src = NULL, meta = c(), .
     rel = rel,
     env = env,
     relative = relative,
-    origin = origin
+    origin = origin,
+    level = level
   ),class = c(paste("URL",comp$scheme,sep = "_"), "URL"))
 
+  if (is.null(x$init)) {
+    x$init <- x # self-ref
+  }
 
   x <- URL_init(x, meta = meta, ...) # warning StacKOverflow
   x <- URL_meta(x, meta = meta)
@@ -124,12 +177,20 @@ as.URL_row.default <- function(x, ...) {
   stopifnot(is.URL(x))
   as.NA.NULL <- function (o) ifelse(is.null(o), NA, o)
   unlist(list(
+    id = as.NA.NULL(as.character(x$id)),
     url = x$url,
     base = as.NA.NULL(as.character(x$base)),
     src = as.NA.NULL(as.character(x$src)),
     init = as.NA.NULL(as.character(x$init)),
     relative = x$relative,
-    origin = x$origin
+    origin = x$origin,
+    level = x$level,
+    scheme = x$comp$scheme,
+    domain = x$comp$domain,
+    port = x$comp$port,
+    path = x$comp$path,
+    parameter = x$comp$parameter,
+    fragment = x$comp$fragment
   ))
 }
 
@@ -143,8 +204,6 @@ as.data.frame.URL <- function(x, ...) {
   if (!is.URL(x) && is.list(x)) {
     #@see http://www.r-bloggers.com/concatenating-a-list-of-data-frames/
     xs <- lapply(x, as.data.frame.URL)
-#    xn <- names(xs)
-#    names(xs) <- NULL
     df <- do.call('rbind',xs)
     return(df)
   }
