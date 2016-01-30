@@ -4,10 +4,10 @@
 \alias{URL}
 \alias{as.URL}
 \alias{as.URL.default}
+\alias{as.URL.list}
 \alias{as.URL_row}
 \alias{as.URL_row.default}
 \alias{as.character.URL}
-\alias{as.data.frame.URL}
 \alias{is.URL}
 \title{Create a URL S3 object}
 \usage{
@@ -20,14 +20,13 @@ as.URL(x, ...)
 
 \method{as.URL}{default}(x, ...)
 
+\method{as.URL}{list}(x, ...)
+
 \method{as.character}{URL}(x, ...)
 
 as.URL_row(x, ...)
 
 \method{as.URL_row}{default}(x, ...)
-
-\method{as.data.frame}{URL}(x, row.names = NULL, optional = FALSE,
-  RECURSIVE = FALSE, ...)
 }
 \arguments{
 \item{url}{string url rapresentation}
@@ -43,12 +42,6 @@ as.URL_row(x, ...)
 \item{...}{other arguments passed to specific methods}
 
 \item{x}{an arbitrary object or an object of S3 class URL}
-
-\item{row.names}{same as as.data.frame}
-
-\item{optional}{same as as.data.frame}
-
-\item{RECURSIVE}{deep expand src URLs}
 }
 \value{
 an URL object
@@ -67,14 +60,15 @@ check if URL object
 conver as.character() string from of object to URL object
 
 conver string form of object to URL object
-
-coerce an URL vector to a data.frame
 }
 \examples{
 # simple scalar construction
 u <- URL('http://www.w3c.org')
-str(u)
 as.character(u)
+
+\dontrun{
+str(u)
+}
 
 # "derived" URL
 u2 <- URL('http://ietf.org', ,src='http://www.w3c.org')
@@ -102,7 +96,7 @@ l <- c(
 
  uz <- URL(l, src=URL('https://cran.r-project.org/'), base='/etc')
 
- df <- as.data.frame.URL(uz)
+ df <- as.data.frame(as.URL_list(uz))
 
  head(df,nrow(df))
 

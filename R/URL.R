@@ -12,8 +12,11 @@
 #' @examples
 #' # simple scalar construction
 #' u <- URL('http://www.w3c.org')
-#' str(u)
 #' as.character(u)
+#'
+#' \dontrun{
+#' str(u)
+#' }
 #'
 #' # "derived" URL
 #' u2 <- URL('http://ietf.org', ,src='http://www.w3c.org')
@@ -41,7 +44,7 @@
 #'
 #'  uz <- URL(l, src=URL('https://cran.r-project.org/'), base='/etc')
 #'
-#'  df <- as.data.frame.URL(uz)
+#'  df <- as.data.frame(as.URL_list(uz))
 #'
 #'  head(df,nrow(df))
 #'
@@ -159,12 +162,71 @@ as.URL <- function(x, ...)
 #' @rdname URL
 #' @export
 #'
-as.URL.default <- base::Vectorize(
-  FUN = function(x, ...) {
-    url <- as.character(x)
-    x <- URL(url, ...)
+as.URL.default <- function(x, ...) {
+  if (missing(x) || is.null(x))  return(NULL)
+  if (is.URL(x)) return(x)
+  if (length(x) > 1) {
+    return(mapply(function(u,n) {
+        if (is.URL(u)) {
+          u$id <- n
+          return(u)
+        } else {
+          return(URL(url = u, id = n, ...))
+        }
+    },u = url, n = names(url), SIMPLIFY = FALSE
+    ))
+    return(x)
   }
-)
+  url <- as.character(x)
+  x <- URL(url, ...)
+}
+
+#' @rdname URL
+#' @export
+#'
+as.URL.list <- function(x, ...) {
+  if (all(lapply(x,is.URL))) {
+    class(x) <- append(class(x),'URL',after = 0)
+    return(x)
+  }
+}
+
+
+
+
+
+
+#' check if URL_list object
+#'
+#' @rdname URL_list
+#' @param x an arbitrary object or an object of S3 class URL_list
+#' @return check condition
+#' @export
+is.URL_list <- function(x)
+  inherits(x, "URL_list")
+
+
+#' add URL_list class to a generic list containing only URL objects.
+#'
+#' throw a conversion error if the list contains other stuff.
+#'
+#' @rdname URL_list
+#' @param ... further arguments
+#' @return an URL_list object
+#' @export
+#'
+as.URL_list <- function(x, ...) UseMethod('as.URL_list')
+
+#' @rdname URL_list
+#' @export
+as.URL_list.list <- function(x, ...) {
+  if (is.URL_list(x)) return(x)
+  stopifnot(all(sapply(x,is.URL)))
+  class(x) <- append(class(x),'URL_list',after=0)
+  x
+}
+
+
 
 
 #' @rdname URL
@@ -217,12 +279,14 @@ as.URL_row.default <- function(x, ...) {
 
 
 
-#' coerce an URL vector to a data.frame
+#' coerce an URL to a data.frame
 #'
-#' @rdname URL
+#' @rdname as.data.frame.URL
+#' @param x any object
 #' @param row.names same as as.data.frame
 #' @param optional same as as.data.frame
 #' @param RECURSIVE deep expand src URLs
+#' @param ... further arguments
 #' @method as.data.frame URL
 #' @export
 as.data.frame.URL <- function(x, row.names = NULL, optional = FALSE, RECURSIVE=FALSE, ...) {
@@ -240,187 +304,22 @@ as.data.frame.URL <- function(x, row.names = NULL, optional = FALSE, RECURSIVE=F
   as.data.frame(df, row.names = row.names, optional = optional, ...)
 }
 
-
-
-
-
-
-
-#' error handler for URL functions
+#' coerce an URL_list to a data.frame
 #'
-#' @rdname URL_stop
-#' @param x a URL object
-#' @param caller a caller method name
-#' @param text error message
-#' @param ... other arguments passed to specific methods
-#' @return raises a stop condition
+#' see http://www.r-bloggers.com/concatenating-a-list-of-data-frames/
+#'
+#' @rdname as.data.frame.URL
+#' @method as.data.frame URL_list
 #' @export
-#'
-URL_stop <- function(x, caller, text, ...)
-  UseMethod("URL_stop")
-
-#' @rdname URL_stop
-#' @method URL_stop default
-#' @export
-#'
-URL_stop.default <- function(x, caller, text, ...) {
-  m <- paste(c("method:",caller,text,"URL:",x$url))
-  stop(m)
-}
-
-
-#' unsupported operation error
-#'
-#' @rdname URL_stop_unsupported
-#' @param x a URL object
-#' @param caller a caller method name
-#' @param ... other arguments passed to specific methods
-#' @return raises a stop condition
-#' @export
-#'
-URL_stop_unsupported <-
-  function(x, caller, ...)
-    UseMethod("URL_stop_unsupported")
-
-#' @rdname URL_stop_unsupported
-#' @export
-#' @method URL_stop_unsupported default
-#'
-URL_stop_unsupported.default <- function(x, caller, ...) {
-  URL_stop(x,caller = caller, text = "unsupported operation", ...)
-}
-
-
-#' "Virtual" object initialization
-#'
-#' @rdname URL_init
-#' @param x an uninitialized URL object
-#' @param meta an optional array of meta attributes
-#' @param ... other arguments passed to specific methods
-#' @return an initialized URL obect
-#' @export
-#'
-URL_init <- function(x, meta = c(), ...)
-  UseMethod("URL_init")
-
-#' @rdname URL_init
-#' @export
-#' @method URL_init default
-#'
-URL_init.default <- function(x, meta = c(), ...)
-  x
-
-#' set meta named array argument
-#' as URL object attributes (with prefix 'meta.')
-#'
-#' @rdname URL_meta
-#' @param x an uninitialized URL object
-#' @param meta an optional array of meta attributes
-#' @param ... other arguments passed to specific methods
-#' @return a 'meta' decorated URL obect
-#' @export
-#'
-URL_meta <- function(x, meta = c(), ...)
-  UseMethod("URL_meta")
-
-#' @rdname URL_meta
-#' @export
-#' @method URL_meta default
-#'
-URL_meta.default <- function(x, meta = c(), ...)
-  x
-
-
-
-#' cast to a url() connection
-#'
-#' TODO(gp): all 'as.connection' alternatives are needed (as.file, ...)
-#'
-#' @rdname as.conn.url
-#' @param x an URL object
-#' @param open     see base::url()
-#' @param blocking see base::url()
-#' @param encoding see base::url()
-#' @param method   see base::url()
-#' @param ... other arguments passed to specific methods
-#' @return a base::connection from url(x$url, ...)
-#' @export
-#'
-as.conn.url <- function(x, open = "", blocking = TRUE,
-                        encoding = getOption("encoding"), method, ...)
-  UseMethod("as.conn.url")
-
-#' @rdname as.conn.url
-#' @export
-#' @method as.conn.url default
-#'
-as.conn.url.default <- function(x, open = "", blocking = TRUE,
-                                encoding = getOption("encoding"), method, ...) {
-  URL_stop_unsupported(x,'as.conn.url')
+as.data.frame.URL_list <- function(x, row.names = NULL, optional = FALSE, RECURSIVE=FALSE, ...) {
+  if (missing(x) || is.null(x))
+    return(as.data.frame(list()))
+  stopifnot(is.URL_list(x))
+  xs <- lapply(x, as.data.frame.URL)
+  df <- do.call('rbind',xs)
+  df <- as.data.frame(df, row.names = row.names, optional = optional, ...)
+  return(df)
 }
 
 
 
-
-#' Fetch url to local storage
-#'
-#' @rdname URL_fetch
-#' @param x an uninitialized URL object
-#' @param ... other arguments passed to specific methods
-#' @return a local file:// URL obect or na:// URL in case of failure
-#' @export
-#'
-URL_fetch <- function(x, ...)
-  UseMethod("URL_fetch")
-
-#' @rdname URL_fetch
-#' @export
-#' @method URL_fetch default
-#'
-URL_fetch.default <- function(x, ...)
-  x
-
-#' follows 'R data()' and httr euristics to build a data rapresentation of an URL
-#' the object returned is data.frame or environment
-#'
-#' Additional parameters are passed to read.* function
-#'
-#' @rdname URL_parse
-#' @param x a URL object
-#' @param ... other arguments passed to specific methods
-#' @return an list of URL with relerence to internal environment for data object
-#' @export
-#'
-URL_parse <- function(x, ...)
-  UseMethod("URL_parse")
-
-#' @rdname URL_parse
-#' @export
-#' @method URL_parse default
-#'
-URL_parse.default <-
-  function(x, ...)
-    URL_stop_unsupported(x,'URL_parse')
-
-
-
-#' extract a persed data object, stored after 'parse'
-#' in object environment
-#'
-#'
-#' @rdname URL_data
-#' @param x a URL object
-#' @param ... other arguments passed to specific methods
-#' @return an parsed data object
-#' @export
-#'
-URL_data <- function(x, ...)
-  UseMethod("URL_data")
-
-#' @rdname URL_data
-#' @export
-#' @method URL_data default
-#'
-URL_data.default <-
-  function(x, ...)
-    URL_stop_unsupported(x,'URL_data')
