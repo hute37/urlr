@@ -17,6 +17,15 @@ Suggests:
     rmarkdown
 VignetteBuilder: knitr
 RoxygenNote: 5.0.1
-Imports: methods,
+Imports:
+    methods,
     urltools,
+    purrr,
     magrittr
+Collate:
+    'URL.R'
+    'URLS.R'
+    'errors.R'
+    'urlr-package.r'
+    'urls-methods.R'
+    'xform.R'
