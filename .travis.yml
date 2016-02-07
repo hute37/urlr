@@ -8,11 +8,11 @@ sudo: required
 cache: apt
 
 notifications:
+  slack: n2nplace:po7Zzne5pBkVqO5tV8To2KuA
   email:
     on_success: change
     on_failure: change
-
-
+  
 r_packages:
   - covr
 after_success:
