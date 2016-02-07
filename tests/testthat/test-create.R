@@ -141,10 +141,10 @@ test_that("list constructon", {
 test_that("vector constructon", {
 
   l <- c(
-    w3c='http://www.w3c.org',
-    ietf='http://ietf.org',
-    iana='http://www.iana.org',
-    hosts='hosts',
+    org.w3c='http://www.w3c.org',
+    org.ietf='http://ietf.org',
+    org.iana='http://www.iana.org',
+    loc.hosts='hosts',
     'R env'='file://etc/R/Renviron'
   )
 
@@ -159,10 +159,10 @@ test_that("vector constructon", {
 test_that("list constructon as.data.frame", {
 
   l <- list(
-    w3c='http://www.w3c.org',
-    ietf='http://ietf.org',
-    iana='http://www.iana.org',
-    hosts='hosts',
+    org.w3c='http://www.w3c.org',
+    org.ietf='http://ietf.org',
+    org.net.iana='http://www.iana.org',
+    loc.hosts='hosts',
     'R env'='file://etc/R/Renviron'
   )
 
@@ -179,10 +179,10 @@ test_that("list constructon as.data.frame", {
 test_that("vector constructon as.data.frame", {
 
   l <- c(
-    w3c='http://www.w3c.org',
-    ietf='http://ietf.org',
-    iana='http://www.iana.org',
-    hosts='hosts',
+    org.w3c='http://www.w3c.org',
+    org.ietf='http://ietf.org',
+    org.net.iana='http://www.iana.org',
+    loc.hosts='hosts',
     'R env'='file://etc/R/Renviron'
   )
 

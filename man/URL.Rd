@@ -12,7 +12,7 @@
 \title{Create a URL S3 object}
 \usage{
 URL(url, base = paste0("file://", getwd()), src = NULL, id = NULL,
-  meta = c(), ...)
+  meta = c(), classes = NULL, ...)
 
 is.URL(x)
 
@@ -38,6 +38,8 @@ as.URL_row(x, ...)
 \item{id}{entry id (taken from named list/array)}
 
 \item{meta}{an optional array of meta attributes}
+
+\item{classes}{extra classes to include (between schema and id)}
 
 \item{...}{other arguments passed to specific methods}
 
@@ -65,6 +67,7 @@ conver string form of object to URL object
 # simple scalar construction
 u <- URL('http://www.w3c.org')
 as.character(u)
+print(u)
 
 \dontrun{
 str(u)

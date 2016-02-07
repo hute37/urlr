@@ -7,7 +7,7 @@ Authors@R: person("Giovanni", "Pelosi", role=c("aut", "cre"), email = "hute37@gm
 Description: URL custom protocol handler support.
     It defines a S3 framework for registering "custom"
     URI protocol handlers (like: sftp://, ssh://).
-    Some custom handlers are provided. 
+    Some custom handlers are provided.
 URL: https://github.com/hute37/urlr
 License: GPL-3
 LazyData: TRUE
@@ -17,5 +17,6 @@ Suggests:
     rmarkdown
 VignetteBuilder: knitr
 RoxygenNote: 5.0.1
-Imports: urltools,
+Imports: methods,
+    urltools,
     magrittr

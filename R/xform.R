@@ -14,8 +14,10 @@ URL_init <- function(x, meta = c(), ...)
 #' @export
 #' @method URL_init default
 #'
-URL_init.default <- function(x, meta = c(), ...)
-  x
+URL_init.default <- function(x, meta = c(), ...) {
+  result <- list(x)
+  result
+}
 
 #' set meta named array argument
 #' as URL object attributes (with prefix 'meta.')

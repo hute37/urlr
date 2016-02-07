@@ -1,3 +1,44 @@
+#' Assiggn S3 classes to urls
+#'
+#' @rdname URL_class
+#' @param url string url rapresentation
+#' @param comp a parsed url
+#' @param src source url
+#' @param id name of url instance (in dotted form)
+#' @param classes extra classes to include (between schema and id)
+#' @param ... other arguments passed to specific methods
+#' @return an array of string to be assigned as S3 classes
+#' @export
+#'
+URL_class <- function(url, comp = urltools::url_parse(url), src = NULL, id = NULL, classes=NULL, ...) {
+  if (missing(url) || is.null(url))
+    return(NULL)
+  stopifnot(is.character(url))
+  if (is.null(id)) {
+    if (!is.null(src)) {
+      id <- src$id
+    }
+  }
+  if (is.null(id)) {
+    id <- ''
+  }
+  idp <- strsplit(gsub(' ', '_',id), ".", fixed = TRUE)[[1]]
+  clazzes <- list(paste("URL",comp$scheme,sep = "_"), "URL")
+  if (!is.null(classes)) {
+    clazzes <- append(clazzes,classes, after = 0)
+  }
+  for (i in seq_along(idp)) {
+    clazz <- paste( "URL", paste(c(idp[1:i]), collapse = '_'), sep = '_')
+    clazzes <- append(clazzes,clazz, after = 0)
+  }
+  result <- unlist(clazzes)
+  result
+}
+
+
+
+
+
 #' Create a URL S3 object
 #'
 #' @rdname URL
@@ -6,6 +47,7 @@
 #' @param src an URL object fron which this object is derived
 #' @param id entry id (taken from named list/array)
 #' @param meta an optional array of meta attributes
+#' @param classes extra classes to include (between schema and id)
 #' @param ... other arguments passed to specific methods
 #' @return an URL object
 #' @export
@@ -13,6 +55,7 @@
 #' # simple scalar construction
 #' u <- URL('http://www.w3c.org')
 #' as.character(u)
+#' print(u)
 #'
 #' \dontrun{
 #' str(u)
@@ -48,7 +91,7 @@
 #'
 #'  head(df,nrow(df))
 #'
-URL <- function(url, base = paste0("file://",getwd()), src = NULL, id = NULL, meta = c(), ...) {
+URL <- function(url, base = paste0("file://",getwd()), src = NULL, id = NULL, meta = c(), classes=NULL, ...) {
   if (missing(url) || is.null(url))
     return(NULL)
   if (is.URL(url)) {
@@ -127,13 +170,13 @@ URL <- function(url, base = paste0("file://",getwd()), src = NULL, id = NULL, me
     relative = relative,
     origin = origin,
     level = level
-  ),class = c(paste("URL",comp$scheme,sep = "_"), "URL"))
+  ),class = URL_class(url = url, comp = comp, src = src, id = id, classes = classes, ... ))
 
   if (is.null(x$init)) {
     x$init <- x # self-ref
   }
 
-  x <- URL_init(x, meta = meta, ...) # warning StacKOverflow
+  #x <- URL_init(x, meta = meta, ...) # warning StacKOverflow
   x <- URL_meta(x, meta = meta)
 }
 
@@ -241,6 +284,35 @@ as.character.URL <- function(x, ...) {
     return(lapply(x, as.character.URL))
   stopifnot(is.URL(x))
 }
+
+
+#' @method format URL
+#' @export
+format.URL <- function(x,...) {
+  return(paste0('[URL:',x$id,'](',x$url,')'))
+}
+
+
+
+#' @method print URL
+#' @export
+print.URL <- function(x, ...) {
+  cat(paste0(sprintf("[%s]",x$id),
+             '\t',as.character(x$url),
+             '\t<- ',as.character(x$src),
+             '\t<<- ',as.character(x$init),
+             '\t',sprintf("<%s>", paste(class(x),collapse=',')),
+             '\n'))
+}
+
+#' @method summary URL
+#' @export
+summary.URL <- function(object, ...) {
+  x <- object
+  cat(paste0(format(x),'\n'))
+}
+
+
 
 #' conver string form of object to URL object
 #'
