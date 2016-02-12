@@ -2,12 +2,9 @@
 % Please edit documentation in R/errors.R
 \name{URL_stop_unsupported}
 \alias{URL_stop_unsupported}
-\alias{URL_stop_unsupported.default}
 \title{unsupported operation error}
 \usage{
 URL_stop_unsupported(x, caller, ...)
-
-\method{URL_stop_unsupported}{default}(x, caller, ...)
 }
 \arguments{
 \item{x}{a URL object}

@@ -54,3 +54,38 @@ setMethod("us", signature(x = "ANY"), function(x, ...) {
 })
 
 
+#' create a list of URL fron scala or list(vector arguments
+#'
+#' Invoke URL constructor, initialize urls and the wrao in URLS object
+#' @rdname ux
+#' @param x a scalar/list parameter to URL constructor
+#' @param f an URL tranformation function to apply
+#' @param ... further arguments
+#' @return A URLS object
+#' @export
+ux <- function(x, f, ...)
+  standardGeneric("ux")
+
+#' @rdname ux
+#' @export
+setGeneric("ux")
+
+#' @rdname ux
+setMethod("ux", signature(x = "URLS" ), function(x, f, ...) {
+  us <- x@urls
+  us <- .to_urls(us)
+  us <- .map_urls(us,f, ...)
+  result <- URLS(urls=us)
+  result
+})
+
+#' @rdname ux
+setMethod("ux", signature(x = "ANY"), function(x, f, ...) {
+  us <- URL(x, ...)
+  us <- .to_urls(us)
+  us <- .map_urls(us,URL_init, ...)
+  xs <- URLS(urls=us)
+  ux(xs, f, ...)
+})
+
+

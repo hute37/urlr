@@ -19,13 +19,18 @@ VignetteBuilder: knitr
 RoxygenNote: 5.0.1
 Imports:
     methods,
-    urltools,
+    magrittr,
     purrr,
-    magrittr
+    urltools
 Collate:
     'URL.R'
     'URLS.R'
     'errors.R'
+    'url-base.R'
+    'url-data.R'
+    'url-file.R'
+    'url-http.R'
+    'url-na.R'
     'urlr-package.r'
     'urls-methods.R'
     'xform.R'

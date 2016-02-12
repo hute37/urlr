@@ -37,12 +37,8 @@ URL_stop_unsupported <-
   function(x, caller, ...)
     UseMethod("URL_stop_unsupported")
 
-#' @rdname URL_stop_unsupported
 #' @export
-#' @method URL_stop_unsupported default
-#'
 URL_stop_unsupported.default <- function(x, caller, ...) {
   URL_stop(x,caller = caller, text = "unsupported operation", ...)
 }
-
 

@@ -2,8 +2,9 @@
 #'
 #' @name urlr
 #' @importFrom urltools url_parse
+#' @importFrom purrr map
+#' @importFrom purrr flatten
 #' @importFrom magrittr %>%
-#' @import purrr
 #' @import methods
 #' @docType package
 NULL
