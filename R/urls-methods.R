@@ -24,8 +24,6 @@
 }
 
 
-
-
 #' create a list of URL fron scala or list(vector arguments
 #'
 #' Invoke URL constructor, initialize urls and the wrao in URLS object
